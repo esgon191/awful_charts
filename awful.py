@@ -202,8 +202,4 @@ class AwfulCharts:
 
 if __name__ == '__main__':
     chart = AwfulCharts()
-    data = pd.DataFrame({
-        'names' : ['alpha', 'beta', 'gamma', 'sigma'],
-        'values' : [10, 40, 20, 80]
-    })
-    chart.watermelon_chart(data=data, names='names', values='values', title='хуй')
+    chart.watermelon()
