@@ -12,7 +12,7 @@ class AwfulCharts:
 
         amount_of_angles = (end_angle - start_angle) * self.angle_multiplyer
 
-        phi = np.radians(np.linspace(start_angle, end_angle, amount_of_angles))
+        phi = np.radians(np.linspace(start_angle, end_angle, int(amount_of_angles)))
         phi, radius = np.meshgrid(phi, radius)
 
         x = radius * np.cos(phi)
@@ -58,14 +58,17 @@ class AwfulCharts:
                 y=y,
                 z=z,
                 colorscale = colorscale,
-                name=name
+                name=name,
+                showscale=False,
+                showlegend=False
             ),
             go.Surface(
                 x=x,
                 y=y,
                 z=-z,
                 colorscale = colorscale,
-                name=name
+                name=name,
+                showscale=False
             )
         ]
         return sector
@@ -100,14 +103,32 @@ class AwfulCharts:
             current_angle+=angle
         return sectors
 
+    def __legend__(self, fig: go.Figure, colors: list, names: list) -> go.Figure:
+        for i, (legend, color) in enumerate(zip(names, colors)):
+            fig.add_annotation(xref='paper', x=0.03, y=1-i*0.05, text=legend,
+                            showarrow=False, xanchor='left', yanchor='middle',
+                            font=dict(size=12, color=color))
+
+            # Добавление символов легенды (квадратики)
+            fig.add_shape(type='rect', xref='paper', yref='paper',
+                        x0=0, y0=0.99-i*0.05-0.015, x1=0.02, y1=0.99-i*0.05+0.015,
+                        line=dict(color=color), fillcolor=color)
+            
+        return fig
 
     def watermelon(self, amount_of_sectors=20, marker_size=5, method='surface', show=True):    
-        angles = [360//amount_of_sectors for _ in range(amount_of_sectors)]
+        angles = [360/amount_of_sectors for _ in range(amount_of_sectors)]
         colors = [('darkgreen', 'lightgreen')[i%2] for i in range(amount_of_sectors)]
         
         sectors = self.__make_sectors__(angles, colors, method, marker_size=marker_size)
 
         fig = go.Figure(data=sectors)
+        #fig.update_layout(legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01))
+        #fig.update_traces(showlegend=True)
+
+        names=['долька' for _ in range(amount_of_sectors)]
+        fig = self.__legend__(fig, colors, names)
+
         if show:
             fig.show()
 
@@ -116,6 +137,8 @@ class AwfulCharts:
         
     def watermelon_chart(data: pd.DataFrame, names: str, values: str, sort=True, method='surface'):
         data = data.copy()
+        if sort:
+            data.sort_values(by=values, inplace=True)
 
 
 
