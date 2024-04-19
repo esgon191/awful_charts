@@ -2,6 +2,7 @@ import numpy as np
 import plotly.graph_objects as go
 import pandas as pd
 import seaborn as sns
+import random
 class AwfulCharts:
     def __init__(self, amount_radius=20, angle_multiplyer=2):
         self.amount_radius=amount_radius
@@ -118,7 +119,40 @@ class AwfulCharts:
         return fig
 
     def __generate_colors__(self, n):
-        colors = sns.color_palette("hsv", n)  # 'hsv' может быть заменен на другие палитры, например: 'deep', 'muted', 'bright', 'pastel', 'dark', 'colorblind'
+        css_colors = [
+            "AliceBlue", "AntiqueWhite", "Aqua", "Aquamarine", "Azure",
+            "Beige", "Bisque", "Black", "BlanchedAlmond", "Blue",
+            "BlueViolet", "Brown", "BurlyWood", "CadetBlue", "Chartreuse",
+            "Chocolate", "Coral", "CornflowerBlue", "Cornsilk", "Crimson",
+            "Cyan", "DarkBlue", "DarkCyan", "DarkGoldenRod", "DarkGray",
+            "DarkGrey", "DarkGreen", "DarkKhaki", "DarkMagenta", "DarkOliveGreen",
+            "Darkorange", "DarkOrchid", "DarkRed", "DarkSalmon", "DarkSeaGreen",
+            "DarkSlateBlue", "DarkSlateGray", "DarkSlateGrey", "DarkTurquoise", "DarkViolet",
+            "DeepPink", "DeepSkyBlue", "DimGray", "DimGrey", "DodgerBlue",
+            "FireBrick", "FloralWhite", "ForestGreen", "Fuchsia", "Gainsboro",
+            "GhostWhite", "Gold", "GoldenRod", "Gray", "Grey",
+            "Green", "GreenYellow", "HoneyDew", "HotPink", "IndianRed", 
+            "Indigo", "Ivory", "Khaki", "Lavender", "LavenderBlush", 
+            "LawnGreen", "LemonChiffon", "LightBlue", "LightCoral", "LightCyan",
+            "LightGoldenRodYellow", "LightGray", "LightGrey", "LightGreen", "LightPink", 
+            "LightSalmon", "LightSeaGreen", "LightSkyBlue", "LightSlateGray", "LightSlateGrey",
+            "LightSteelBlue", "LightYellow", "Lime", "LimeGreen", "Linen",
+            "Magenta", "Maroon", "MediumAquaMarine", "MediumBlue", "MediumOrchid",
+            "MediumPurple", "MediumSeaGreen", "MediumSlateBlue", "MediumSpringGreen", "MediumTurquoise",
+            "MediumVioletRed", "MidnightBlue", "MintCream", "MistyRose", "Moccasin",
+            "NavajoWhite", "Navy", "OldLace", "Olive", "OliveDrab",
+            "Orange", "OrangeRed", "Orchid", "PaleGoldenRod", "PaleGreen",
+            "PaleTurquoise", "PaleVioletRed", "PapayaWhip", "PeachPuff", "Peru",
+            "Pink", "Plum", "PowderBlue", "Purple", "Red",
+            "RosyBrown", "RoyalBlue", "SaddleBrown", "Salmon", "SandyBrown",
+            "SeaGreen", "SeaShell", "Sienna", "Silver", "SkyBlue",
+            "SlateBlue", "SlateGray", "SlateGrey", "Snow", "SpringGreen",
+            "SteelBlue", "Tan", "Teal", "Thistle", "Tomato",
+            "Turquoise", "Violet", "Wheat", "White", "WhiteSmoke",
+            "Yellow", "YellowGreen"
+        ]
+
+        colors = random.sample(css_colors, n)  
         return colors
 
     def watermelon(self, amount_of_sectors=20, marker_size=5, method='surface', show=True):    
@@ -148,12 +182,12 @@ class AwfulCharts:
         if sort:
             data.sort_values(by=values, inplace=True)
 
-        angles = (data['values'] * (360 / data['values'].sum())).tolist()
+        angles = (data[values] * (360 / data[values].sum())).tolist()
         colors = self.__generate_colors__(len(angles))
         sectors = self.__make_sectors__(angles, colors, method, names)
 
         fig = go.Figure(sectors)
-        fig = self.__legend__(fig, colors, names)
+        fig = self.__legend__(fig, colors, data[names].to_list())
 
         if title != None:
             fig.update_layout(
@@ -168,4 +202,8 @@ class AwfulCharts:
 
 if __name__ == '__main__':
     chart = AwfulCharts()
-    chart.watermelon()
+    data = pd.DataFrame({
+        'names' : ['alpha', 'beta', 'gamma', 'sigma'],
+        'values' : [10, 40, 20, 80]
+    })
+    chart.watermelon_chart(data=data, names='names', values='values', title='хуй')
