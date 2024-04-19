@@ -1,6 +1,6 @@
 import numpy as np
 import plotly.graph_objects as go
-
+import pandas as pd
 class AwfulCharts:
     def __prepare_grid__(self, start_angle: (int | float), end_angle: (int | float), amount_radius: int, angle_multiplyer: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         angles = np.linspace(0, 90, amount_radius)
@@ -103,7 +103,16 @@ class AwfulCharts:
                 zaxis=dict(range=[-1, 1]),  # Лимиты для оси Z
             )
         )
-        fig.show()
+        if show:
+            fig.show()
+
+        else:
+            return fig
+        
+    def watermelon_chart(data: pd.DataFrame, names: str, values: str, method='surface'):
+        data = data.copy()
+        
+
 
 if __name__ == '__main__':
     chart = AwfulCharts()
