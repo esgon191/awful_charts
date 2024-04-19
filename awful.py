@@ -1,6 +1,7 @@
 import numpy as np
 import plotly.graph_objects as go
 import pandas as pd
+import seaborn as sns
 class AwfulCharts:
     def __init__(self, amount_radius=20, angle_multiplyer=2):
         self.amount_radius=amount_radius
@@ -116,6 +117,10 @@ class AwfulCharts:
             
         return fig
 
+    def __generate_colors__(self, n):
+        colors = sns.color_palette("hsv", n)  # 'hsv' может быть заменен на другие палитры, например: 'deep', 'muted', 'bright', 'pastel', 'dark', 'colorblind'
+        return colors
+
     def watermelon(self, amount_of_sectors=20, marker_size=5, method='surface', show=True):    
         angles = [360/amount_of_sectors for _ in range(amount_of_sectors)]
         colors = [('darkgreen', 'lightgreen')[i%2] for i in range(amount_of_sectors)]
@@ -128,6 +133,9 @@ class AwfulCharts:
 
         names=['долька' for _ in range(amount_of_sectors)]
         fig = self.__legend__(fig, colors, names)
+        fig.update_layout(
+            title='Диаграмма арбуза'
+        )
 
         if show:
             fig.show()
@@ -135,12 +143,28 @@ class AwfulCharts:
         else:
             return fig
         
-    def watermelon_chart(data: pd.DataFrame, names: str, values: str, sort=True, method='surface'):
+    def watermelon_chart(self, data: pd.DataFrame, names: str, values: str, title: str=None, method='surface', sort=True, show=True):
         data = data.copy()
         if sort:
             data.sort_values(by=values, inplace=True)
 
+        angles = (data['values'] * (360 / data['values'].sum())).tolist()
+        colors = self.__generate_colors__(len(angles))
+        sectors = self.__make_sectors__(angles, colors, method, names)
 
+        fig = go.Figure(sectors)
+        fig = self.__legend__(fig, colors, names)
+
+        if title != None:
+            fig.update_layout(
+                title=title
+            )
+        
+        if show:
+            fig.show()
+
+        else:
+            return fig
 
 if __name__ == '__main__':
     chart = AwfulCharts()
