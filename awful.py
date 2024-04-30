@@ -143,7 +143,7 @@ class AwfulCharts:
             
         return fig
 
-    def __generate_colors__(self, n, seed=None):
+    def __generate_colors__(self, n, seed=None) -> list:
         """
         Создание списка из n случайных цветов
         """
@@ -186,7 +186,7 @@ class AwfulCharts:
         colors = random.sample(css_colors, n)  
         return colors
 
-    def watermelon(self, amount_of_sectors=20, marker_size=5, method='surface', show=True): 
+    def watermelon(self, amount_of_sectors=20, marker_size=5, method='surface', show=True) -> (go.Figure | None): 
         """
         Создание диаграммы арбуза
         """   
@@ -211,7 +211,7 @@ class AwfulCharts:
         else:
             return fig
         
-    def watermelon_chart(self, data: pd.DataFrame, names: str, values: str, title: str=None, method='surface', sort=True, show=True):
+    def watermelon_chart(self, data: pd.DataFrame, names: str, values: str, title: str=None, method='surface', sort=True, show=True) -> (go.Figure | None):
         """
         Арбузная диаграмма. 
         На вход сгруппированный датафрейм (Не groupby-object !), названия столбцов категорий и соответсвующих им значений
@@ -237,6 +237,45 @@ class AwfulCharts:
 
         else:
             return fig
+        
+        def __separate_by_nones__(self, df: pd.DataFrame, separators: list) -> pd.DataFrame:
+            """
+            Вставляет строку из None в pd.DataFrame между группами по separators
+            """
+            df = pd.DataFrame.copy()
+            flag = True
+            for i in df.index:
+                if (not all(df.loc[i][separators] == df.loc[i+1][separators]) and flag):
+                    new_row = pd.DataFrame({j : None for j in df.columns.tolist()}, index=[i+0.5])
+                    df = pd.concat([df.iloc[:i], new_row, df.iloc[i:]]).sort_index().reset_index(drop=True)
+                    flag = False
+                else:
+                    flag = True
+
+            return df
+
+        def __add_color_column__(self, df: pd.DataFrame, separator: str, column_name='color') -> pd.DataFrame:
+            """
+            Добавляет в pd.DataFrame колонку с цветом для категории
+            Категории - уникальные значения в колонке separator
+            """
+            categories = df[separator].unique()
+            colors = self.__generate_colors__(len(categories))
+
+            df = df.copy()
+            color_info = {categories[i] : colors[i] for i in range(len(categories))}
+            df[column_name] = df[separator].apply(lambda x : color_info.get(x))
+
+            
+
+
+
+        def pasta_chart(self, data: pd.DataFrame, x_values: str, y_values: str, z_values: str, color_split: str):
+            """
+            Макаронная диаграмма. 
+            На вход сгруппированный датафрейм 
+            | значения (категории) по X | значения (категории) по Y | значения по Z | по какому признаку отделять значения по цвету |
+            """
 
 if __name__ == '__main__':
     chart = AwfulCharts()
