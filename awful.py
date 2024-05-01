@@ -143,7 +143,7 @@ class AwfulCharts:
             
         return fig
 
-    def __generate_colors__(self, n, seed=None) -> list:
+    def __generate_colors__(self, n, lower=False, seed=None) -> list:
         """
         Создание списка из n случайных цветов
         """
@@ -183,7 +183,10 @@ class AwfulCharts:
             "Yellow", "YellowGreen"
         ]
 
-        colors = random.sample(css_colors, n)  
+        colors = random.sample(css_colors, n)
+        if lower:
+            colors = [i.lower() for i in colors]
+
         return colors
 
     def watermelon(self, amount_of_sectors=20, marker_size=5, method='surface', show=True) -> (go.Figure | None): 
@@ -254,13 +257,13 @@ class AwfulCharts:
 
         return df
 
-    def __add_color_column__(self, df: pd.DataFrame, separator: str, column_name='color') -> pd.DataFrame:
+    def __add_color_column__(self, df: pd.DataFrame, separator: str, column_name='color', return_color_info=False) -> pd.DataFrame:
         """
         Добавляет в pd.DataFrame колонку с цветом для категории
         Категории - уникальные значения в колонке separator
         """
         categories = df[separator].unique()
-        colors = self.__generate_colors__(len(categories))
+        colors = self.__generate_colors__(len(categories), lower=True)
 
         df = df.copy()
         color_info = {categories[i] : colors[i] for i in range(len(categories))}
@@ -270,19 +273,24 @@ class AwfulCharts:
 
 
 
-    def pasta_chart(self, data: pd.DataFrame, x_values: str, y_values: str, z_values: str, color_split: str, show=True):
+    def pasta_chart(self, data: pd.DataFrame, axis_categoties: str, color_split: str, line_direction: str, z_values: str, title='Макаронная диаграмма', line_direction_sort=False, show=True) -> (go.Figure | None):
         """
         Макаронная диаграмма. 
-        На вход сгруппированный датафрейм 
-        | значения (категории) по X | значения (категории) по Y | значения по Z | по какому признаку отделять значения по цвету |
+        На вход датафрейм 
+            axis_categories - значения (категории) по X 
+            color_split - По каким категориям делить по цвету
+            line_direction - по каком столбцу направлять линии
+            z_values - значения по Z 
+            line_direction_sort - сортировать ли значения в категории направления линии (например месяца)
         """
-        data = data.copy()
+        to_sort = [axis_categoties, color_split] + [line_direction] if line_direction_sort else []
+        data.sort_values(by=to_sort, inplace=True)
 
-        data = self.__add_color_column__(data, color_split)
-        data = self.__separate_by_nones__(data, separators=[x_values, y_values, color_split])
+        data = self.__separate_by_nones__(df=data, separators=[axis_categoties, color_split])
+        data = self.__add_color_column__(df=data, separator=color_split)
 
-        x = data[x_values]
-        y = data[y_values]
+        x = data[axis_categoties]
+        y = data[line_direction]
         z = data[z_values]
         colors = data['color']
 
@@ -301,6 +309,30 @@ class AwfulCharts:
                 width=10
             )
         )])
+
+        # Добавление заголовка и названий осей
+        fig.update_layout(
+            title=title,
+            scene=dict(
+                aspectmode='manual',
+                aspectratio=dict(x=1, y=2, z=1),
+                xaxis_title=axis_categoties,
+                yaxis_title=line_direction,
+                zaxis_title=z_values
+            ),
+            autosize=False,
+            width=1200, height=800,
+            margin=dict(l=65, r=50, b=65, t=90)
+        )
+
+        # Добавление легенды
+        names = data[color_split].unique().tolist()
+        colors_unique = data['color'].unique().tolist()
+        colors_unique.pop([i for i in range(len(names)) if names[i] == None][0])
+        names.remove(None)
+
+        fig = self.__legend__(fig, colors=colors_unique, names=names)
+
         if show:
             fig.show()
         else:
@@ -314,4 +346,4 @@ if __name__ == '__main__':
     data = data.reset_index(names=['city', 'product', 'number_of_month'])
 
     chart = AwfulCharts()
-    chart.pasta_chart(data, x_values='city', y_values='number_of_month', z_values='sells', color_split='product')
+    chart.pasta_chart(data, axis_categoties='city', line_direction='number_of_month', z_values='sells', color_split='product')
