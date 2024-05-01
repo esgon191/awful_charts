@@ -238,45 +238,80 @@ class AwfulCharts:
         else:
             return fig
         
-        def __separate_by_nones__(self, df: pd.DataFrame, separators: list) -> pd.DataFrame:
-            """
-            Вставляет строку из None в pd.DataFrame между группами по separators
-            """
-            df = pd.DataFrame.copy()
-            flag = True
-            for i in df.index:
-                if (not all(df.loc[i][separators] == df.loc[i+1][separators]) and flag):
-                    new_row = pd.DataFrame({j : None for j in df.columns.tolist()}, index=[i+0.5])
-                    df = pd.concat([df.iloc[:i], new_row, df.iloc[i:]]).sort_index().reset_index(drop=True)
-                    flag = False
-                else:
-                    flag = True
+    def __separate_by_nones__(self, df: pd.DataFrame, separators: list) -> pd.DataFrame:
+        """
+        Вставляет строку из None в pd.DataFrame между группами по separators
+        """
+        df = df.copy()
+        flag = True
+        for i in df.index:
+            if (not all(df.loc[i][separators] == df.loc[i+1][separators]) and flag):
+                new_row = pd.DataFrame({j : None for j in df.columns.tolist()}, index=[i+0.5])
+                df = pd.concat([df.iloc[:i], new_row, df.iloc[i:]]).sort_index().reset_index(drop=True)
+                flag = False
+            else:
+                flag = True
 
-            return df
+        return df
 
-        def __add_color_column__(self, df: pd.DataFrame, separator: str, column_name='color') -> pd.DataFrame:
-            """
-            Добавляет в pd.DataFrame колонку с цветом для категории
-            Категории - уникальные значения в колонке separator
-            """
-            categories = df[separator].unique()
-            colors = self.__generate_colors__(len(categories))
+    def __add_color_column__(self, df: pd.DataFrame, separator: str, column_name='color') -> pd.DataFrame:
+        """
+        Добавляет в pd.DataFrame колонку с цветом для категории
+        Категории - уникальные значения в колонке separator
+        """
+        categories = df[separator].unique()
+        colors = self.__generate_colors__(len(categories))
 
-            df = df.copy()
-            color_info = {categories[i] : colors[i] for i in range(len(categories))}
-            df[column_name] = df[separator].apply(lambda x : color_info.get(x))
+        df = df.copy()
+        color_info = {categories[i] : colors[i] for i in range(len(categories))}
+        df[column_name] = df[separator].apply(lambda x : color_info.get(x))
 
-            
+        return df
 
 
 
-        def pasta_chart(self, data: pd.DataFrame, x_values: str, y_values: str, z_values: str, color_split: str):
-            """
-            Макаронная диаграмма. 
-            На вход сгруппированный датафрейм 
-            | значения (категории) по X | значения (категории) по Y | значения по Z | по какому признаку отделять значения по цвету |
-            """
+    def pasta_chart(self, data: pd.DataFrame, x_values: str, y_values: str, z_values: str, color_split: str, show=True):
+        """
+        Макаронная диаграмма. 
+        На вход сгруппированный датафрейм 
+        | значения (категории) по X | значения (категории) по Y | значения по Z | по какому признаку отделять значения по цвету |
+        """
+        data = data.copy()
+
+        data = self.__add_color_column__(data, color_split)
+        data = self.__separate_by_nones__(data, separators=[x_values, y_values, color_split])
+
+        x = data[x_values]
+        y = data[y_values]
+        z = data[z_values]
+        colors = data['color']
+
+        fig = go.Figure(data=[go.Scatter3d(
+            x=x,
+            y=y,
+            z=z,
+            mode='lines+markers',  # Только маркеры, без соединяющих линий
+            marker=dict(
+                size=8,  # Размер маркеров
+                color=colors,# Цвета маркеров
+                opacity=0.8  # Прозрачность маркеров
+            ),
+            line=dict(
+                color=colors,
+                width=10
+            )
+        )])
+        if show:
+            fig.show()
+        else:
+            return fig
 
 if __name__ == '__main__':
+    data = pd.read_excel('pz_4_data.xlsx')
+    data['дата'] = pd.to_datetime(data['дата'])
+    data.columns = ['city', 'region', 'contragent', 'product', 'date', 'number_of_month', 'sells', 'cost', 'profit']
+    data = data[['city', 'number_of_month', 'product', 'sells']].groupby(['city', 'product', 'number_of_month']).agg('sum')
+    data = data.reset_index(names=['city', 'product', 'number_of_month'])
+
     chart = AwfulCharts()
-    chart.watermelon()
+    chart.pasta_chart(data, x_values='city', y_values='number_of_month', z_values='sells', color_split='product')
