@@ -317,11 +317,11 @@ class AwfulCharts:
                 aspectmode='manual',
                 aspectratio=dict(x=1, y=2, z=1),
                 xaxis_title=axis_categoties,
-                yaxis_title=line_direction,
+                yaxis=dict(title=title, ticktext=data[line_direction].unique()),
                 zaxis_title=z_values
             ),
             autosize=False,
-            width=1200, height=800,
+            #width=1200, height=800,
             margin=dict(l=65, r=50, b=65, t=90)
         )
 
