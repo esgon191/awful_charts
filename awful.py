@@ -339,11 +339,5 @@ class AwfulCharts:
             return fig
 
 if __name__ == '__main__':
-    data = pd.read_excel('pz_4_data.xlsx')
-    data['дата'] = pd.to_datetime(data['дата'])
-    data.columns = ['city', 'region', 'contragent', 'product', 'date', 'number_of_month', 'sells', 'cost', 'profit']
-    data = data[['city', 'number_of_month', 'product', 'sells']].groupby(['city', 'product', 'number_of_month']).agg('sum')
-    data = data.reset_index(names=['city', 'product', 'number_of_month'])
-
     chart = AwfulCharts()
-    chart.pasta_chart(data, axis_categoties='city', line_direction='number_of_month', z_values='sells', color_split='product')
+    chart.watermelon()
